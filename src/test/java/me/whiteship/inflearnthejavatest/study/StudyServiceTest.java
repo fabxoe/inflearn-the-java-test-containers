@@ -1,5 +1,6 @@
 package me.whiteship.inflearnthejavatest.study;
 
+import lombok.extern.slf4j.Slf4j;
 import me.whiteship.inflearnthejavatest.domain.Member;
 import me.whiteship.inflearnthejavatest.domain.Study;
 import me.whiteship.inflearnthejavatest.member.MemberService;
@@ -13,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.times;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 @Testcontainers
+@Slf4j
 class StudyServiceTest {
 
     @Mock MemberService memberService;
@@ -37,15 +40,20 @@ class StudyServiceTest {
     @Container
     private static GenericContainer postgreSQLContainer = new GenericContainer("postgres")
             .withExposedPorts(5432)
-            .withEnv("POSTGRES_DB","studytest")
-            .waitingFor(Wait.forListeningPort());
-//            .waitingFor(Wait.forLogMessage());
-//            .waitingFor(Wait.forHttp("/hello"));
+            .withEnv("POSTGRES_DB","studytest");
+    @BeforeAll
+    static void beforeAll() {
+        Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(log);
+        postgreSQLContainer.followOutput(logConsumer);
+    }
+
 
     @BeforeEach
     void beforeEach() {
         System.out.println("========");
         System.out.println(postgreSQLContainer.getMappedPort(5432));
+
+        System.out.println(postgreSQLContainer.getLogs());
         studyRepository.deleteAll();
     }
 
