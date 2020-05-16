@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -33,11 +35,17 @@ class StudyServiceTest {
     @Autowired StudyRepository studyRepository;
 
     @Container
-    private static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer()
-            .withDatabaseName("studytest");
+    private static GenericContainer postgreSQLContainer = new GenericContainer("postgres")
+            .withExposedPorts(5432)
+            .withEnv("POSTGRES_DB","studytest")
+            .waitingFor(Wait.forListeningPort());
+//            .waitingFor(Wait.forLogMessage());
+//            .waitingFor(Wait.forHttp("/hello"));
 
     @BeforeEach
     void beforeEach() {
+        System.out.println("========");
+        System.out.println(postgreSQLContainer.getMappedPort(5432));
         studyRepository.deleteAll();
     }
 
